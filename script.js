@@ -382,7 +382,7 @@ function renderBreakdownTable(records) {
 
 function runAiPrediction() {
     const btn = document.getElementById('predictBtn');
-    btn.innerHTML = '<i class="fa-solid fa-spinner animate-spin text-xs"></i> Running Jayvon\'s Model...';
+    btn.innerHTML = '<i class="fa-solid fa-spinner animate-spin text-xs"></i> Running Model...';
     btn.disabled = true;
 
     setTimeout(() => {
@@ -433,9 +433,9 @@ function runAiPrediction() {
 
         let explanation = '';
         if (isRise) {
-            explanation = `Jayvon's model suggests a healthy upward momentum for <strong>${currentGame}</strong>. Steady player retention combined with recent month-over-month velocity points to an estimated increase of roughly ${Math.abs(diff).toLocaleString()} average players next month.`;
+            explanation = `The model suggests a healthy upward momentum for <strong>${currentGame}</strong>. Steady player retention combined with recent month-over-month velocity points to an estimated increase of roughly ${Math.abs(diff).toLocaleString()} average players next month.`;
         } else {
-            explanation = `Jayvon's model detects minor seasonal cooling for <strong>${currentGame}</strong> following previous peak intervals. The forecast estimates a slight normalization of around ${Math.abs(diff).toLocaleString()} concurrent users as players rotate to other titles.`;
+            explanation = `The model detects minor seasonal cooling for <strong>${currentGame}</strong> following previous peak intervals. The forecast estimates a slight normalization of around ${Math.abs(diff).toLocaleString()} concurrent users as players rotate to other titles.`;
         }
         document.getElementById('aiExplanationText').innerHTML = explanation;
 

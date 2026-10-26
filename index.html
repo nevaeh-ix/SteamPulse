@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Steam Game Trends & AI Prediction Dashboard</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="script.js"></script>
+    <!-- Google Fonts Plus Jakarta Sans & DM Sans -->
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js for interactive graphs -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="min-h-screen flex flex-col selection:bg-[#D97757]/20 selection:text-[#D97757]">
+
+    <!-- Header Navigation -->
+    <header class="border-b border-[#E3DDD1] bg-[#FDFBF7]/90 backdrop-blur-md sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+            <div class="flex items-center space-x-3.5">
+                <div class="w-11 h-11 rounded-2xl bg-[#D97757] flex items-center justify-center shadow-md shadow-[#D97757]/20 text-white">
+                    <i class="fa-solid fa-seedling text-lg"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold tracking-tight text-[#2C2A29] flex items-center gap-2">
+                        SteamPulse <span class="text-xs px-2.5 py-0.5 rounded-full bg-[#D97757]/10 text-[#D97757] font-semibold">Human Analytics</span>
+                    </h1>
+                    <p class="text-xs text-[#6B6560]">Game Trends & AI Prediction Dashboard</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-3">
+                <div class="hidden sm:flex items-center gap-2 text-xs bg-[#F4F1EA] px-3.5 py-2 rounded-xl border border-[#E3DDD1]">
+                    <span class="w-2 h-2 rounded-full bg-[#607C65]"></span>
+                    <span class="text-[#6B6560]">Dataset: <strong class="text-[#2C2A29]">steam_player_counts_clean.csv</strong></span>
+                </div>
+                <button onclick="openInfoModal()" class="px-3.5 py-2 text-xs font-semibold bg-[#F4F1EA] hover:bg-[#EBE6DC] text-[#2C2A29] rounded-xl border border-[#E3DDD1] transition-all flex items-center gap-1.5 shadow-sm">
+                    <i class="fa-solid fa-book-open text-[#D97757]"></i> About Model
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Dashboard Container -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+
+        <!-- Top Bar: Game Selector Cards -->
+        <section class="organic-card p-6">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+                <div>
+                    <h2 class="text-lg font-bold text-[#2C2A29] flex items-center gap-2">
+                        <i class="fa-solid fa-compass text-[#D97757]"></i> Choose a Game to Explore
+                    </h2>
+                    <p class="text-xs text-[#6B6560] mt-0.5">Select a title below to inspect its historical rhythm and run Jayvon's AI forecaster.</p>
+                </div>
+                <div class="flex items-center gap-2 text-xs text-[#6B6560] bg-[#EBE6DC]/60 px-3 py-1.5 rounded-xl border border-[#E3DDD1]">
+                    <i class="fa-solid fa-gamepad text-[#D97757]"></i> 5 Popular Steam Games
+                </div>
+            </div>
+
+            <!-- Game Selector Grid -->
+            <div id="gameSelectorGrid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5">
+                <!-- Populated dynamically -->
+            </div>
+        </section>
+
+        <!-- Summary Metric Cards -->
+        <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <!-- Card 1: Current Avg Players -->
+            <div class="organic-card p-5 relative overflow-hidden group">
+                <span class="text-xs font-semibold text-[#6B6560] uppercase tracking-wider">Current Avg Players</span>
+                <div class="mt-2 flex items-baseline gap-2">
+                    <span id="metricCurrentAvg" class="text-2xl font-extrabold text-[#2C2A29]">0</span>
+                    <span id="metricAvgBadge" class="text-xs px-2 py-0.5 rounded-md font-semibold bg-[#E3DDD1] text-[#2C2A29]">--</span>
+                </div>
+                <p id="metricAvgSub" class="text-xs text-[#6B6560] mt-1">vs previous month</p>
+            </div>
+
+            <!-- Card 2: Peak Players -->
+            <div class="organic-card p-5 relative overflow-hidden group">
+                <span class="text-xs font-semibold text-[#6B6560] uppercase tracking-wider">All-Time Peak Count</span>
+                <div class="mt-2 flex items-baseline gap-2">
+                    <span id="metricPeak" class="text-2xl font-extrabold text-[#2C2A29]">0</span>
+                </div>
+                <p id="metricPeakDate" class="text-xs text-[#D97757] mt-1 font-semibold">Record High Month</p>
+            </div>
+
+            <!-- Card 3: Latest MoM Change -->
+            <div class="organic-card p-5 relative overflow-hidden group">
+                <span class="text-xs font-semibold text-[#6B6560] uppercase tracking-wider">Latest MoM Change</span>
+                <div class="mt-2 flex items-baseline gap-2">
+                    <span id="metricChange" class="text-2xl font-extrabold text-[#2C2A29]">0</span>
+                    <span id="metricChangePct" class="text-xs px-2 py-0.5 rounded-md font-semibold">--%</span>
+                </div>
+                <p id="metricChangeSub" class="text-xs text-[#6B6560] mt-1">Player fluctuation</p>
+            </div>
+
+            <!-- Card 4: AI Prediction Status -->
+            <div class="organic-card p-5 relative overflow-hidden border-[#D97757]/30 bg-gradient-to-br from-[#F4F1EA] to-[#FDF4EB]">
+                <span class="text-xs font-semibold text-[#D97757] uppercase tracking-wider flex items-center gap-1.5">
+                    <i class="fa-solid fa-sparkles"></i> Jayvon's AI Prediction
+                </span>
+                <div class="mt-2 flex items-baseline gap-2">
+                    <span id="metricAiVal" class="text-2xl font-extrabold text-[#2C2A29]">Ready</span>
+                    <span id="metricAiBadge" class="text-xs px-2 py-0.5 rounded-md font-semibold bg-[#D97757]/15 text-[#D97757]">Pending</span>
+                </div>
+                <p id="metricAiSub" class="text-xs text-[#6B6560] mt-1">Press predict below</p>
+            </div>
+        </section>
+
+        <!-- Main Content Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            
+            <!-- Left 2 Columns: Chart & Monthly Table -->
+            <div class="lg:col-span-2 space-y-8">
+                
+                <!-- Chart Container -->
+                <section class="organic-card p-6 flex flex-col">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+                        <div>
+                            <h3 id="chartTitle" class="text-lg font-bold text-[#2C2A29] flex items-center gap-2">
+                                <i class="fa-solid fa-chart-line text-[#D97757]"></i> Historical Player Rhythm
+                            </h3>
+                            <p class="text-xs text-[#6B6560] mt-0.5">Monthly average and peak concurrent players over time</p>
+                        </div>
+                        <div class="flex items-center gap-2 bg-[#EBE6DC] p-1 rounded-xl">
+                            <button onclick="toggleChartMetric('both')" id="btnBoth" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-[#D97757] text-white shadow-sm transition-all">Both</button>
+                            <button onclick="toggleChartMetric('avg')" id="btnAvg" class="px-3 py-1.5 text-xs font-semibold rounded-lg text-[#6B6560] hover:text-[#2C2A29] transition-all">Average</button>
+                            <button onclick="toggleChartMetric('peak')" id="btnPeak" class="px-3 py-1.5 text-xs font-semibold rounded-lg text-[#6B6560] hover:text-[#2C2A29] transition-all">Peak</button>
+                        </div>
+                    </div>
+                    <div class="relative w-full h-[340px]">
+                        <canvas id="trendChart"></canvas>
+                    </div>
+                </section>
+
+                <!-- Monthly Table Breakdown -->
+                <section class="organic-card p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-bold text-[#2C2A29] flex items-center gap-2">
+                            <i class="fa-solid fa-table-cells text-[#D97757]"></i> Monthly Breakdown Records
+                        </h3>
+                        <span class="text-xs text-[#6B6560]" id="recordCountLabel">Showing records</span>
+                    </div>
+                    <div class="overflow-x-auto max-h-[300px] rounded-xl border border-[#E3DDD1]">
+                        <table class="w-full text-left border-collapse bg-[#FDFBF7]">
+                            <thead class="bg-[#F4F1EA] text-[#6B6560] text-xs uppercase sticky top-0 z-10 border-b border-[#E3DDD1]">
+                                <tr>
+                                    <th class="py-3 px-4 font-semibold">Month</th>
+                                    <th class="py-3 px-4 font-semibold">Avg Players</th>
+                                    <th class="py-3 px-4 font-semibold">Peak Players</th>
+                                    <th class="py-3 px-4 font-semibold">MoM Change</th>
+                                    <th class="py-3 px-4 font-semibold">Percentage</th>
+                                </tr>
+                            </thead>
+                            <tbody id="breakdownTableBody" class="divide-y divide-[#E3DDD1]/60 text-sm">
+                                <!-- Populated dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+            </div>
+
+            <!-- Right Column: AI Prediction Module & Game Profile -->
+            <div class="space-y-8">
+                
+                <!-- AI Prediction Module Card -->
+                <section class="organic-card p-6 border-[#D97757]/30 bg-gradient-to-b from-[#F4F1EA] via-[#FDFBF7] to-[#FDFBF7]">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-9 h-9 rounded-xl bg-[#D97757]/15 text-[#D97757] flex items-center justify-center border border-[#D97757]/30">
+                                <i class="fa-solid fa-wand-magic-sparkles"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-base font-bold text-[#2C2A29]">AI Forecaster</h3>
+                                <p class="text-xs text-[#D97757] font-semibold">Jayvon's Trained Model</p>
+                            </div>
+                        </div>
+                        <span class="text-[11px] px-2.5 py-0.5 rounded-full bg-[#EBE6DC] text-[#6B6560] font-mono">v2.4 Model</span>
+                    </div>
+
+                    <p class="text-xs text-[#6B6560] mb-6 leading-relaxed">
+                        Examines historical momentum, velocity, and seasonal patterns to thoughtfully project player engagement for the upcoming month.
+                    </p>
+
+                    <!-- Prediction Button -->
+                    <button onclick="runAiPrediction()" id="predictBtn" class="w-full py-3.5 px-4 rounded-xl font-bold bg-[#D97757] hover:bg-[#C46241] text-white shadow-lg shadow-[#D97757]/20 transition-all flex items-center justify-center gap-2 text-sm group">
+                        <i class="fa-solid fa-play text-xs group-hover:scale-110 transition-transform"></i> Predict Next Month
+                    </button>
+
+                    <!-- Prediction Results Area -->
+                    <div id="predictionResults" class="mt-6 space-y-4 hidden">
+                        <div class="p-4 rounded-2xl bg-[#F4F1EA] border border-[#E3DDD1] space-y-3 shadow-sm">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs text-[#6B6560]">Expected Trend</span>
+                                <span id="predDirectionBadge" class="text-xs px-2.5 py-1 rounded-lg font-bold flex items-center gap-1.5">--</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs text-[#6B6560]">Predicted Average</span>
+                                <span id="predAvgVal" class="text-base font-extrabold text-[#2C2A29] font-mono">--</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs text-[#6B6560]">Confidence Score</span>
+                                <div class="flex items-center gap-2">
+                                    <div class="w-24 bg-[#E3DDD1] h-2 rounded-full overflow-hidden">
+                                        <div id="predConfidenceBar" class="bg-[#607C65] h-full rounded-full transition-all duration-500" style="width: 0%"></div>
+                                    </div>
+                                    <span id="predConfidenceText" class="text-xs font-bold text-[#607C65]">--%</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Friendly AI Commentary -->
+                        <div class="p-4 rounded-2xl bg-[#E8EFE9]/50 border border-[#607C65]/20 space-y-2">
+                            <h4 class="text-xs font-bold text-[#607C65] uppercase tracking-wider flex items-center gap-1.5">
+                                <i class="fa-solid fa-comment-dots"></i> Jayvon's Human Insights
+                            </h4>
+                            <p id="aiExplanationText" class="text-xs text-[#2C2A29] leading-relaxed">
+                                Press predict to generate forecast.
+                            </p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Game Profile Summary Card -->
+                <section class="organic-card p-6 space-y-4">
+                    <h3 class="text-sm font-bold text-[#2C2A29] flex items-center gap-2">
+                        <i class="fa-solid fa-circle-info text-[#D97757]"></i> Game Profile Summary
+                    </h3>
+                    <div class="space-y-3 text-xs">
+                        <div class="flex justify-between py-2 border-b border-[#E3DDD1]">
+                            <span class="text-[#6B6560]">Game Title</span>
+                            <span id="profileGameName" class="font-bold text-[#2C2A29]">--</span>
+                        </div>
+                        <div class="flex justify-between py-2 border-b border-[#E3DDD1]">
+                            <span class="text-[#6B6560]">Total Data Records</span>
+                            <span id="profileRecords" class="font-bold text-[#2C2A29]">--</span>
+                        </div>
+                        <div class="flex justify-between py-2 border-b border-[#E3DDD1]">
+                            <span class="text-[#6B6560]">All-Time Peak Month</span>
+                            <span id="profilePeakMonth" class="font-bold text-[#D97757]">--</span>
+                        </div>
+                        <div class="flex justify-between py-2">
+                            <span class="text-[#6B6560]">Overall Trend Direction</span>
+                            <span id="profileLongTrend" class="font-bold">--</span>
+                        </div>
+                    </div>
+                </section>
+
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="mt-auto border-t border-[#E3DDD1] bg-[#F4F1EA]/60 py-6 text-center text-xs text-[#6B6560]">
+        <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <p>Steam Game Trends & AI Prediction Dashboard &copy; 2026. Embedded with <code class="text-[#D97757]">steam_player_counts_clean.csv</code>.</p>
+            <div class="flex items-center gap-4">
+                <span class="flex items-center gap-1.5"><i class="fa-solid fa-heart text-[#D97757]"></i> Human-friendly design</span>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Info Modal -->
+    <div id="infoModal" class="fixed inset-0 z-50 bg-[#2C2A29]/40 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="organic-card max-w-lg w-full p-6 space-y-4 shadow-2xl relative bg-[#FDFBF7]">
+            <button onclick="closeInfoModal()" class="absolute top-4 right-4 text-[#6B6560] hover:text-[#2C2A29] text-lg">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-[#D97757]/15 text-[#D97757] flex items-center justify-center border border-[#D97757]/30">
+                    <i class="fa-solid fa-seedling text-lg"></i>
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold text-[#2C2A29]">About the Dashboard & Dataset</h3>
+                    <p class="text-xs text-[#D97757]">Jayvon's Player Trend Forecasting Engine</p>
+                </div>
+            </div>
+            <div class="space-y-3 text-xs text-[#6B6560] leading-relaxed">
+                <p>
+                    This warm, human-styled interface evaluates clean records from <code class="text-[#2C2A29] bg-[#F4F1EA] px-1.5 py-0.5 rounded border border-[#E3DDD1]">steam_player_counts_clean.csv</code> across 5 major multiplayer games on Steam.
+                </p>
+                <p>
+                    <strong>AI Forecasting Logic:</strong> The prediction module calculates month-over-month (MoM) velocity and seasonal trends to provide realistic estimates and confidence scores for future player engagement.
+                </p>
+            </div>
+            <div class="pt-2 flex justify-end">
+                <button onclick="closeInfoModal()" class="px-4 py-2 bg-[#D97757] text-white font-bold text-xs rounded-xl hover:bg-[#C46241] transition-all">Got It</button>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>
